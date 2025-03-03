@@ -40,6 +40,10 @@ export default defineConfig({
                     },
                 ],
             },
+            devOptions: {
+                enabled: true, // Activez ceci pour tester la PWA en développement
+                type: "module", // Type de module pour le service worker en développement
+            },
             workbox: {
                 runtimeCaching: [
                     {
@@ -60,7 +64,8 @@ export default defineConfig({
             },
         }),
     ],
-    base: "./",
+    // Utilisez "/" en production et "./" en développement si nécessaire
+    base: "/",
     build: {
         assetsDir: "assets",
         rollupOptions: {
