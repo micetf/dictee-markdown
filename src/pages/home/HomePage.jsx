@@ -11,6 +11,7 @@ const HomePage = () => {
     const { dictees, loading, error, initialized, deleteDictee } = useDictee();
     const [isInstallable, setIsInstallable] = useState(false);
     const [deferredPrompt, setDeferredPrompt] = useState(null);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
     const navigate = useNavigate();
 
     // Détecter si l'application est installable
@@ -80,12 +81,19 @@ const HomePage = () => {
 
             const reader = new FileReader();
             reader.onload = (e) => {
-                // Rediriger vers la page de migration avec le contenu du fichier
-                navigate("/migration", { state: { content: e.target.result } });
+                // Rediriger vers la page d'importation avec le contenu du fichier
+                navigate("/editor/import", {
+                    state: { content: e.target.result, type: "file" },
+                });
             };
             reader.readAsText(file);
         };
         input.click();
+    };
+
+    // Gestion du dropdown
+    const toggleDropdown = () => {
+        setDropdownOpen(!dropdownOpen);
     };
 
     if (loading && !initialized) {
@@ -117,13 +125,79 @@ const HomePage = () => {
                         Créer une nouvelle dictée
                     </Button>
 
-                    <Button
-                        variant="outline"
-                        size="lg"
-                        onClick={importMarkdownFile}
-                    >
-                        Importer un fichier Markdown
-                    </Button>
+                    <div className="relative">
+                        <Button
+                            variant="outline"
+                            size="lg"
+                            onClick={toggleDropdown}
+                            className="inline-flex items-center"
+                        >
+                            Importer une dictée
+                            <svg
+                                className="ml-2 h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 9l-7 7-7-7"
+                                />
+                            </svg>
+                        </Button>
+                        {dropdownOpen && (
+                            <div className="absolute left-0 mt-1 bg-white shadow-lg rounded-md z-10 min-w-[200px]">
+                                <button
+                                    onClick={() => {
+                                        setDropdownOpen(false);
+                                        importMarkdownFile();
+                                    }}
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center"
+                                >
+                                    <svg
+                                        className="h-5 w-5 mr-2"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                        />
+                                    </svg>
+                                    Depuis un fichier Markdown
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setDropdownOpen(false);
+                                        navigate("/editor/import", {
+                                            state: { type: "cloud" },
+                                        });
+                                    }}
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center"
+                                >
+                                    <svg
+                                        className="h-5 w-5 mr-2"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"
+                                        />
+                                    </svg>
+                                    Depuis le Cloud
+                                </button>
+                            </div>
+                        )}
+                    </div>
 
                     <Button
                         variant="secondary"
