@@ -96,6 +96,78 @@ class CloudService {
     }
 
     /**
+     * Importe un fichier depuis CodiMD/HedgeDoc
+     * @param {string} url - L'URL CodiMD ou HedgeDoc
+     * @returns {Promise<string>} Le contenu du fichier
+     */
+    async importFromCodiMD(url) {
+        try {
+            // Transformation des URLs pour accéder au contenu brut
+            // Format typique: https://codimd.apps.education.fr/XXXXX
+
+            // Convertir l'URL en version "raw" ou "download"
+            let downloadUrl = url;
+
+            // Si l'URL se termine par "/", supprimer le slash final
+            if (downloadUrl.endsWith("/")) {
+                downloadUrl = downloadUrl.slice(0, -1);
+            }
+
+            // Si l'URL ne contient pas déjà "/download" ou "/raw", ajouter "/download"
+            if (
+                !downloadUrl.includes("/download") &&
+                !downloadUrl.includes("/raw")
+            ) {
+                downloadUrl += "/download";
+            }
+
+            const response = await fetch(downloadUrl);
+            if (!response.ok) {
+                throw new Error(
+                    `Erreur lors de la récupération depuis CodiMD/HedgeDoc: ${response.statusText}`
+                );
+            }
+
+            return await response.text();
+        } catch (error) {
+            console.error("Erreur CodiMD/HedgeDoc:", error);
+            throw error;
+        }
+    }
+
+    /**
+     * Importe un fichier depuis Nextcloud (Nuage03)
+     * @param {string} url - L'URL Nextcloud
+     * @returns {Promise<string>} Le contenu du fichier
+     */
+    async importFromNextcloud(url) {
+        try {
+            // Pour les instances Nextcloud, on peut souvent accéder au contenu brut
+            // en ajoutant "/download" à l'URL
+
+            // Vérifier si l'URL contient déjà "/download"
+            let downloadUrl = url;
+            if (!url.includes("/download")) {
+                // Enlever les paramètres d'URL si présents
+                const urlWithoutParams = url.split("?")[0];
+                downloadUrl = `${urlWithoutParams}/download`;
+            }
+
+            const response = await fetch(downloadUrl);
+            if (!response.ok) {
+                throw new Error(
+                    `Erreur lors de la récupération depuis Nextcloud: ${response.statusText}`
+                );
+            }
+
+            return await response.text();
+        } catch (error) {
+            console.error("Erreur Nextcloud:", error);
+            throw error;
+        }
+    }
+
+    /**
      * Méthode générique pour importer depuis une URL selon le service détecté
      * @param {string} url - L'URL à analyser
      * @returns {Promise<string>} Le contenu du fichier
@@ -113,6 +185,16 @@ class CloudService {
                 return await this.importFromDropbox(url);
             } else if (url.includes("github.com")) {
                 return await this.importFromGitHub(url);
+            } else if (
+                url.includes("codimd.apps.education.fr") ||
+                url.includes("hedgedoc")
+            ) {
+                return await this.importFromCodiMD(url);
+            } else if (
+                url.includes("nuage03.apps.education.fr") ||
+                url.includes("apps.education.fr")
+            ) {
+                return await this.importFromNextcloud(url);
             } else {
                 // URL générique
                 const response = await fetch(url, {
