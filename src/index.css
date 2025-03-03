@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        @apply text-gray-900;
+        font-family: Inter, system-ui, sans-serif;
+    }
+
+    body {
+        @apply bg-gray-100;
+    }
+
+    h1 {
+        @apply text-3xl font-bold mb-4;
+    }
+
+    h2 {
+        @apply text-2xl font-bold mb-3;
+    }
+
+    h3 {
+        @apply text-xl font-bold mb-2;
+    }
+}
+
+@layer components {
+    .btn {
+        @apply px-4 py-2 rounded-md font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+    }
+
+    .btn-primary {
+        @apply btn bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+    }
+
+    .btn-secondary {
+        @apply btn bg-secondary-500 text-white hover:bg-secondary-600 focus:ring-secondary-400;
+    }
+
+    .btn-outline {
+        @apply btn border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-400;
+    }
+
+    .input-field {
+        @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500;
+    }
+
+    .card {
+        @apply bg-white rounded-lg shadow-md overflow-hidden;
+    }
+
+    .card-body {
+        @apply p-6;
+    }
+}
+
+/* Animation pour les transitions */
+.fade-enter {
+    opacity: 0;
+}
+.fade-enter-active {
+    opacity: 1;
+    transition: opacity 300ms;
+}
+.fade-exit {
+    opacity: 1;
+}
+.fade-exit-active {
+    opacity: 0;
+    transition: opacity 300ms;
+}
+
+/* Utilitaires pour la synthèse vocale */
+.highlight-current {
+    @apply bg-yellow-200 px-1 py-0.5 rounded transition-all duration-200;
+}
+
+/* Markdown styles */
+.markdown h1 {
+    @apply text-2xl font-bold my-4;
+}
+
+.markdown ol {
+    @apply list-decimal list-inside my-4 pl-4;
+}
+
+.markdown li {
+    @apply my-2;
+}
