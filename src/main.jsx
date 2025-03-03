@@ -1,24 +1,29 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { registerSW } from "virtual:pwa-register";
 import App from "./App";
 import "./index.css";
 import { DicteeProvider } from "./context/DicteeProvider";
 
 // Enregistrement du service worker pour la PWA
 if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-        navigator.serviceWorker
-            .register("/sw.js")
-            .then((registration) => {
-                console.log(
-                    "Service Worker enregistré avec succès:",
-                    registration.scope
-                );
-            })
-            .catch((error) => {
-                console.log("Échec d'enregistrement du Service Worker:", error);
-            });
+    const updateSW = registerSW({
+        onNeedRefresh() {
+            // Une mise à jour est disponible
+            console.log("Une mise à jour est disponible !");
+            // Vous pourriez ajouter ici une UI pour demander à l'utilisateur de rafraîchir
+            const shouldUpdate = confirm(
+                "Une nouvelle version est disponible. Rafraîchir?"
+            );
+            if (shouldUpdate) {
+                updateSW();
+            }
+        },
+        onOfflineReady() {
+            // L'application est prête à fonctionner hors ligne
+            console.log("Application prête pour le mode hors ligne");
+        },
     });
 }
 
