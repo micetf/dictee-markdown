@@ -11,7 +11,10 @@ const Navbar = () => {
 
     // Vérification si un lien est actif
     const isActive = (path) => {
-        return location.pathname === path;
+        if (path === "/") {
+            return location.pathname === path;
+        }
+        return location.pathname.startsWith(path);
     };
 
     // Toggle du menu mobile
@@ -46,12 +49,25 @@ const Navbar = () => {
                             <Link
                                 to="/editor"
                                 className={`${
-                                    isActive("/editor")
+                                    isActive("/editor") &&
+                                    !location.pathname.includes(
+                                        "/editor/import"
+                                    )
                                         ? "border-white text-white"
                                         : "border-transparent text-gray-300 hover:border-gray-300 hover:text-white"
                                 } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
                             >
                                 Créer
+                            </Link>
+                            <Link
+                                to="/editor/import"
+                                className={`${
+                                    location.pathname.includes("/editor/import")
+                                        ? "border-white text-white"
+                                        : "border-transparent text-gray-300 hover:border-gray-300 hover:text-white"
+                                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                            >
+                                Importer
                             </Link>
                             <Link
                                 to="/migration"
@@ -148,13 +164,25 @@ const Navbar = () => {
                     <Link
                         to="/editor"
                         className={`${
-                            isActive("/editor")
+                            isActive("/editor") &&
+                            !location.pathname.includes("/editor/import")
                                 ? "bg-primary-900 border-white text-white"
                                 : "border-transparent text-gray-300 hover:bg-primary-700 hover:border-gray-300 hover:text-white"
                         } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
                         onClick={() => setIsMenuOpen(false)}
                     >
                         Créer
+                    </Link>
+                    <Link
+                        to="/editor/import"
+                        className={`${
+                            location.pathname.includes("/editor/import")
+                                ? "bg-primary-900 border-white text-white"
+                                : "border-transparent text-gray-300 hover:bg-primary-700 hover:border-gray-300 hover:text-white"
+                        } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+                        onClick={() => setIsMenuOpen(false)}
+                    >
+                        Importer
                     </Link>
                     <Link
                         to="/migration"

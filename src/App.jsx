@@ -7,6 +7,7 @@ import { useDictee } from "./hooks/useDictee";
 
 // Importation paresseuse des pages pour améliorer les performances
 const EditorPage = React.lazy(() => import("./pages/editor/EditorPage"));
+const ImportPage = React.lazy(() => import("./pages/import/ImportPage"));
 const PlayerPage = React.lazy(() => import("./pages/player/PlayerPage"));
 const MigrationPage = React.lazy(() =>
     import("./pages/migration/MigrationPage")
@@ -54,6 +55,7 @@ function App() {
                         <Route path="/" element={<HomePage />} />
                         <Route path="/editor" element={<EditorPage />} />
                         <Route path="/editor/:id" element={<EditorPage />} />
+                        <Route path="/editor/import" element={<ImportPage />} />
                         <Route path="/player/:id" element={<PlayerPage />} />
                         <Route path="/migration" element={<MigrationPage />} />
                         <Route path="*" element={<div>Page non trouvée</div>} />
