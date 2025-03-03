@@ -279,10 +279,11 @@ const ImportPage = () => {
                         </div>
                     ) : (
                         /* Interface d'importation depuis le cloud */
+                        /* Interface d'importation depuis le cloud */
                         <div>
                             <p className="mb-4 text-gray-600">
                                 Collez un lien vers un fichier Markdown stocké
-                                sur Google Drive, Dropbox ou GitHub.
+                                sur un service cloud compatible.
                             </p>
                             <div className="flex flex-col md:flex-row gap-4">
                                 <TextField
@@ -290,7 +291,7 @@ const ImportPage = () => {
                                     onChange={(e) =>
                                         setCloudUrl(e.target.value)
                                     }
-                                    placeholder="https://drive.google.com/file/d/... ou https://github.com/..."
+                                    placeholder="https://drive.google.com/file/d/... ou https://codimd.apps.education.fr/..."
                                     fullWidth
                                     disabled={loading || isLoading}
                                 />
@@ -341,6 +342,19 @@ const ImportPage = () => {
                                     </li>
                                     <li>Dropbox (lien de partage)</li>
                                     <li>GitHub (fichier ou Gist)</li>
+                                    <li>
+                                        CodiMD
+                                        (https://codimd.apps.education.fr)
+                                    </li>
+                                    <li>HedgeDoc</li>
+                                    <li>
+                                        Nuage03
+                                        (https://nuage03.apps.education.fr)
+                                    </li>
+                                    <li>
+                                        Autres instances Nextcloud
+                                        (apps.education.fr)
+                                    </li>
                                     <li>
                                         URL directe vers un fichier Markdown
                                     </li>

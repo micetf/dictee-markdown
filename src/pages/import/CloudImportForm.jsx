@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
-import Button from "../ui/Button";
-import TextField from "../ui/TextField";
+import Button from "../../components/ui/Button";
+import TextField from "../../components/ui/TextField";
 
 /**
  * Composant pour l'importation depuis les services cloud
@@ -17,14 +17,14 @@ const CloudImportForm = ({
     return (
         <div>
             <p className="mb-4 text-gray-600">
-                Collez un lien vers un fichier Markdown stocké sur Google Drive,
-                Dropbox ou GitHub.
+                Collez un lien vers un fichier Markdown stocké sur un service
+                cloud compatible.
             </p>
             <div className="flex flex-col md:flex-row gap-4">
                 <TextField
                     value={cloudUrl}
                     onChange={(e) => onUrlChange(e.target.value)}
-                    placeholder="https://drive.google.com/file/d/... ou https://github.com/..."
+                    placeholder="https://drive.google.com/file/d/... ou https://codimd.apps.education.fr/..."
                     fullWidth
                     disabled={disabled || isLoading}
                 />
@@ -71,6 +71,10 @@ const CloudImportForm = ({
                     <li>Google Drive (lien de partage public)</li>
                     <li>Dropbox (lien de partage)</li>
                     <li>GitHub (fichier ou Gist)</li>
+                    <li>CodiMD (https://codimd.apps.education.fr)</li>
+                    <li>HedgeDoc</li>
+                    <li>Nuage03 (https://nuage03.apps.education.fr)</li>
+                    <li>Autres instances Nextcloud (apps.education.fr)</li>
                     <li>URL directe vers un fichier Markdown</li>
                 </ul>
                 <p className="mt-3 text-xs text-blue-600">
