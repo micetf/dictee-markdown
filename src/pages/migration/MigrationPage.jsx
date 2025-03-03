@@ -4,6 +4,7 @@ import { useDictee } from "../../hooks/useDictee";
 import Button from "../../components/ui/Button";
 import TextField from "../../components/ui/TextField";
 import MarkdownService from "../../services/MarkdownService";
+import CloudService from "../../services/CloudService";
 
 /**
  * Page de migration depuis l'ancien format
@@ -13,9 +14,11 @@ const MigrationPage = () => {
     const { importFromMarkdown, importFromOldUrl, loading, error } =
         useDictee();
     const [url, setUrl] = useState("");
+    const [cloudUrl, setCloudUrl] = useState("");
     const [markdownContent, setMarkdownContent] = useState("");
     const [previewData, setPreviewData] = useState(null);
-    const [sourceType, setSourceType] = useState("url"); // 'url' ou 'markdown'
+    const [sourceType, setSourceType] = useState("url"); // 'url', 'markdown' ou 'cloud'
+    const [isLoading, setIsLoading] = useState(false);
     const [operationResult, setOperationResult] = useState({
         type: null,
         message: null,
@@ -153,6 +156,53 @@ const MigrationPage = () => {
     };
 
     /**
+     * Gère l'importation depuis un service cloud
+     */
+    const handleCloudImport = async () => {
+        if (!cloudUrl.trim()) {
+            setOperationResult({
+                type: "error",
+                message: "Veuillez saisir une URL valide",
+            });
+            return;
+        }
+
+        try {
+            setIsLoading(true);
+            // Récupérer le contenu depuis le cloud
+            const content = await CloudService.importFromUrl(cloudUrl);
+
+            // Vérifier que c'est bien du Markdown et qu'il contient au moins un titre
+            if (!content.includes("#")) {
+                setOperationResult({
+                    type: "error",
+                    message:
+                        "Le fichier récupéré ne semble pas être au format Markdown (pas de titre avec #)",
+                });
+                return;
+            }
+
+            // Afficher la prévisualisation
+            setMarkdownContent(content);
+            handleMarkdownPreview(content);
+
+            setOperationResult({
+                type: "success",
+                message: "Fichier importé avec succès depuis le cloud !",
+            });
+        } catch (err) {
+            setOperationResult({
+                type: "error",
+                message: `Erreur lors de l'importation : ${
+                    err.message || "Une erreur est survenue"
+                }`,
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    /**
      * Gère l'importation d'un fichier Markdown
      */
     const handleFileImport = (event) => {
@@ -212,7 +262,7 @@ const MigrationPage = () => {
 
             <div className="bg-white shadow-md rounded-lg overflow-hidden mb-8">
                 <div className="px-6 py-4 border-b border-gray-200">
-                    <div className="flex space-x-4">
+                    <div className="flex flex-wrap space-x-2 space-y-2 sm:space-y-0">
                         <button
                             onClick={() => setSourceType("url")}
                             className={`px-4 py-2 font-medium rounded-md ${
@@ -233,6 +283,16 @@ const MigrationPage = () => {
                         >
                             Depuis un fichier Markdown
                         </button>
+                        <button
+                            onClick={() => setSourceType("cloud")}
+                            className={`px-4 py-2 font-medium rounded-md ${
+                                sourceType === "cloud"
+                                    ? "bg-primary-100 text-primary-800"
+                                    : "text-gray-600 hover:bg-gray-100"
+                            }`}
+                        >
+                            Depuis le Cloud
+                        </button>
                     </div>
                 </div>
 
@@ -249,18 +309,20 @@ const MigrationPage = () => {
                                     onChange={(e) => setUrl(e.target.value)}
                                     placeholder="https://micetf.fr/dictee/?tl=fr&titre=..."
                                     fullWidth
-                                    disabled={loading}
+                                    disabled={loading || isLoading}
                                 />
                                 <Button
                                     variant="primary"
                                     onClick={handleUrlPreview}
-                                    disabled={!url.trim() || loading}
+                                    disabled={
+                                        !url.trim() || loading || isLoading
+                                    }
                                 >
                                     Analyser
                                 </Button>
                             </div>
                         </div>
-                    ) : (
+                    ) : sourceType === "markdown" ? (
                         <div>
                             <p className="mb-4 text-gray-600">
                                 Importez un fichier Markdown ou collez son
@@ -275,6 +337,7 @@ const MigrationPage = () => {
                                     accept=".md"
                                     onChange={handleFileImport}
                                     className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                                    disabled={loading || isLoading}
                                 />
                             </div>
                             <div>
@@ -293,19 +356,96 @@ const MigrationPage = () => {
 1. Première phrase de la dictée.
 2. Deuxième phrase de la dictée.
 3. Troisième phrase de la dictée."
-                                    disabled={loading}
+                                    disabled={loading || isLoading}
                                 />
                                 <div className="mt-3">
                                     <Button
                                         variant="primary"
                                         onClick={() => handleMarkdownPreview()}
                                         disabled={
-                                            !markdownContent.trim() || loading
+                                            !markdownContent.trim() ||
+                                            loading ||
+                                            isLoading
                                         }
                                     >
                                         Analyser
                                     </Button>
                                 </div>
+                            </div>
+                        </div>
+                    ) : (
+                        /* Interface d'importation depuis le cloud */
+                        <div>
+                            <p className="mb-4 text-gray-600">
+                                Collez un lien vers un fichier Markdown stocké
+                                sur Google Drive, Dropbox ou GitHub.
+                            </p>
+                            <div className="flex flex-col md:flex-row gap-4">
+                                <TextField
+                                    value={cloudUrl}
+                                    onChange={(e) =>
+                                        setCloudUrl(e.target.value)
+                                    }
+                                    placeholder="https://drive.google.com/file/d/... ou https://github.com/..."
+                                    fullWidth
+                                    disabled={loading || isLoading}
+                                />
+                                <Button
+                                    variant="primary"
+                                    onClick={handleCloudImport}
+                                    disabled={
+                                        !cloudUrl.trim() || loading || isLoading
+                                    }
+                                >
+                                    {isLoading ? (
+                                        <span className="flex items-center">
+                                            <svg
+                                                className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <circle
+                                                    className="opacity-25"
+                                                    cx="12"
+                                                    cy="12"
+                                                    r="10"
+                                                    stroke="currentColor"
+                                                    strokeWidth="4"
+                                                ></circle>
+                                                <path
+                                                    className="opacity-75"
+                                                    fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                ></path>
+                                            </svg>
+                                            Importation...
+                                        </span>
+                                    ) : (
+                                        "Importer"
+                                    )}
+                                </Button>
+                            </div>
+
+                            <div className="mt-6 bg-blue-50 p-4 rounded-md">
+                                <h3 className="text-sm font-medium text-blue-800 mb-2">
+                                    Services pris en charge :
+                                </h3>
+                                <ul className="list-disc pl-5 text-sm text-blue-700">
+                                    <li>
+                                        Google Drive (lien de partage public)
+                                    </li>
+                                    <li>Dropbox (lien de partage)</li>
+                                    <li>GitHub (fichier ou Gist)</li>
+                                    <li>
+                                        URL directe vers un fichier Markdown
+                                    </li>
+                                </ul>
+                                <p className="mt-3 text-xs text-blue-600">
+                                    Note : Assurez-vous que les fichiers sont
+                                    partagés publiquement ou accessibles sans
+                                    authentification.
+                                </p>
                             </div>
                         </div>
                     )}
@@ -353,16 +493,16 @@ const MigrationPage = () => {
                                         ? handleImportFromUrl
                                         : handleImportFromMarkdown
                                 }
-                                disabled={loading}
+                                disabled={loading || isLoading}
                             >
-                                {loading
+                                {loading || isLoading
                                     ? "Importation..."
                                     : "Importer dans l'application"}
                             </Button>
                             <Button
                                 variant="outline"
                                 onClick={handleDownloadMarkdown}
-                                disabled={loading}
+                                disabled={loading || isLoading}
                             >
                                 Télécharger au format Markdown
                             </Button>
