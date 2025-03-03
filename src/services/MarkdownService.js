@@ -18,6 +18,15 @@ class MarkdownService {
         const titleMatch = lines[0].match(/^# (.+)$/);
         const title = titleMatch ? titleMatch[1].trim() : "Sans titre";
 
+        // Extraire la langue depuis les métadonnées (commentaire HTML)
+        let lang = "fr"; // Valeur par défaut
+        const langMatch = markdownContent.match(
+            /<!--\s*lang:([a-z]{2}(?:-[A-Z]{2})?)\s*-->/
+        );
+        if (langMatch && langMatch[1]) {
+            lang = langMatch[1].trim();
+        }
+
         // Extraire les phrases (lignes numérotées)
         const sentences = [];
         const sentenceRegex = /^\d+\.\s+(.+)$/;
@@ -32,7 +41,7 @@ class MarkdownService {
         return {
             title,
             sentences,
-            lang: "fr", // Par défaut
+            lang,
         };
     }
 
@@ -46,9 +55,17 @@ class MarkdownService {
             return "# Sans titre\n\n";
         }
 
-        const { title, sentences } = dictee;
+        const { title, sentences, lang } = dictee;
 
-        let markdown = `# ${title}\n\n`;
+        // Générer le Markdown avec métadonnées
+        let markdown = `# ${title}\n`;
+
+        // Ajouter la langue comme commentaire HTML si disponible
+        if (lang) {
+            markdown += `<!-- lang:${lang} -->\n`;
+        }
+
+        markdown += "\n";
 
         sentences.forEach((sentence, index) => {
             if (sentence && sentence.trim()) {
@@ -112,6 +129,29 @@ class MarkdownService {
         }
 
         return false;
+    }
+
+    /**
+     * Extrait les métadonnées d'un contenu Markdown
+     * @param {string} markdownContent - Le contenu Markdown
+     * @returns {Object} Les métadonnées extraites
+     */
+    extractMetadata(markdownContent) {
+        if (!markdownContent) {
+            return { lang: "fr" };
+        }
+
+        const metadata = { lang: "fr" };
+
+        // Extraire la langue
+        const langMatch = markdownContent.match(
+            /<!--\s*lang:([a-z]{2}(?:-[A-Z]{2})?)\s*-->/
+        );
+        if (langMatch && langMatch[1]) {
+            metadata.lang = langMatch[1].trim();
+        }
+
+        return metadata;
     }
 }
 

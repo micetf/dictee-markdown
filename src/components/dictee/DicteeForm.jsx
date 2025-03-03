@@ -29,14 +29,22 @@ const DicteeForm = ({
 
     // Générer l'aperçu Markdown
     useEffect(() => {
-        let md = `# ${title}\n\n`;
+        let md = `# ${title}\n`;
+
+        // Inclure la langue dans l'aperçu
+        if (lang) {
+            md += `<!-- lang:${lang} -->\n`;
+        }
+
+        md += "\n";
+
         sentences.forEach((sentence, index) => {
             if (sentence.trim()) {
                 md += `${index + 1}. ${sentence}\n`;
             }
         });
         setMarkdownPreview(md);
-    }, [title, sentences]);
+    }, [title, sentences, lang]);
 
     // Validation du formulaire
     const validateForm = () => {
@@ -110,14 +118,16 @@ const DicteeForm = ({
                         fullWidth
                         error={errors.title}
                     />
-
                     {/* Langue de la dictée */}
                     <div>
                         <label
                             htmlFor="lang"
                             className="block text-sm font-medium text-gray-700 mb-1"
                         >
-                            Langue
+                            Langue de la dictée
+                            <span className="ml-1 text-xs text-gray-500">
+                                (pour la synthèse vocale)
+                            </span>
                         </label>
                         <select
                             id="lang"
@@ -126,14 +136,38 @@ const DicteeForm = ({
                             onChange={(e) => setLang(e.target.value)}
                             className="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                         >
-                            <option value="fr">Français</option>
-                            <option value="en">Anglais</option>
-                            <option value="es">Espagnol</option>
-                            <option value="de">Allemand</option>
-                            <option value="it">Italien</option>
+                            <option value="fr">Français (fr)</option>
+                            <option value="fr-FR">
+                                Français - France (fr-FR)
+                            </option>
+                            <option value="fr-CA">
+                                Français - Canada (fr-CA)
+                            </option>
+                            <option value="en">Anglais (en)</option>
+                            <option value="en-US">
+                                Anglais - États-Unis (en-US)
+                            </option>
+                            <option value="en-GB">
+                                Anglais - Royaume-Uni (en-GB)
+                            </option>
+                            <option value="es">Espagnol (es)</option>
+                            <option value="es-ES">
+                                Espagnol - Espagne (es-ES)
+                            </option>
+                            <option value="de">Allemand (de)</option>
+                            <option value="de-DE">
+                                Allemand - Allemagne (de-DE)
+                            </option>
+                            <option value="it">Italien (it)</option>
+                            <option value="it-IT">
+                                Italien - Italie (it-IT)
+                            </option>
                         </select>
+                        <p className="mt-1 text-xs text-gray-500">
+                            La langue sera sauvegardée dans le fichier Markdown
+                            et utilisée pour la synthèse vocale.
+                        </p>
                     </div>
-
                     {/* Phrases de la dictée */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -201,7 +235,6 @@ const DicteeForm = ({
                             </div>
                         </div>
                     </div>
-
                     {/* Aperçu Markdown */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -211,7 +244,6 @@ const DicteeForm = ({
                             {markdownPreview}
                         </div>
                     </div>
-
                     {/* Boutons d'action */}
                     <div className="flex justify-end space-x-3 pt-4">
                         <Button

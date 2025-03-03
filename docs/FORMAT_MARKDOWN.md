@@ -1,159 +1,229 @@
-# Guide de migration - De l'ancienne dictée au format Markdown
+# Format Markdown pour les dictées
 
-Ce document explique comment migrer des dictées depuis l'ancienne version de l'application (basée sur les paramètres URL) vers le nouveau format Markdown.
+Ce document spécifie le format Markdown utilisé pour stocker et partager les dictées dans l'application.
 
-## Comprendre l'ancien format
+## Format de base
 
-Dans l'ancienne version de l'application, les dictées étaient stockées dans l'URL sous forme de paramètres :
+Une dictée au format Markdown suit cette structure :
 
-```
-https://micetf.fr/dictee/?tl=fr&titre=Les+mois+de+l%27ann%C3%A9e&d[1]=106|97|110|118|105|101|114|&d[2]=102|233|118|114|105|101|114|&d[3]=109|97|114|115|
-```
+```markdown
+# Titre de la dictée
 
-Où :
+<!-- lang:fr -->
 
--   `tl` est le code de langue (fr, en, es, de, it)
--   `titre` est le titre de la dictée (encodé en URL)
--   `d[1]`, `d[2]`, etc. sont les phrases encodées en valeurs ASCII séparées par des barres verticales
-
-## Méthodes de migration
-
-### 1. Migration automatique via l'outil intégré
-
-L'application Dictée Markdown intègre un outil de migration automatique :
-
-1. Dans l'application, cliquez sur "Migrer une ancienne dictée"
-2. Collez l'URL complète de l'ancienne dictée
-3. Cliquez sur "Convertir"
-4. L'application analysera l'URL, décodera les phrases et générera la version Markdown
-5. Vérifiez le résultat et cliquez sur "Enregistrer" pour sauvegarder la dictée
-
-### 2. Migration manuelle
-
-Si vous préférez migrer manuellement :
-
-1. Ouvrez l'ancienne dictée dans votre navigateur
-2. Notez le titre
-3. Listez toutes les phrases en utilisant le bouton "Écouter" pour chacune
-4. Créez un nouveau fichier Markdown avec la structure correcte :
-
-    ```markdown
-    # Titre de la dictée
-
-    1. Première phrase
-    2. Deuxième phrase
-       ...
-    ```
-
-5. Importez ce fichier dans la nouvelle application
-
-## Décodage de l'ancien format
-
-Pour les utilisateurs techniques qui souhaitent comprendre ou implémenter leur propre décodeur :
-
-### Processus de décodage
-
-```javascript
-// Décode une phrase depuis l'ancien format
-function decodeOldPhrase(encodedPhrase) {
-    // Divise la chaîne en codes ASCII séparés par |
-    const codes = encodedPhrase.split("|");
-
-    // Convertit chaque code en caractère et les joint
-    return codes
-        .filter((code) => code !== "")
-        .map((code) => String.fromCharCode(parseInt(code, 10)))
-        .join("");
-}
-
-// Exemple d'utilisation
-const oldEncodedPhrase = "106|97|110|118|105|101|114|";
-const decodedPhrase = decodeOldPhrase(oldEncodedPhrase);
-console.log(decodedPhrase); // "janvier"
+1. Première phrase de la dictée.
+2. Deuxième phrase de la dictée.
+3. Troisième phrase de la dictée.
 ```
 
-### Exemple de conversion complète
+## Spécifications détaillées
 
-```javascript
-// Convertit une URL complète en objet dictée
-function convertOldUrlToDictee(url) {
-    // Extrait les paramètres de l'URL
-    const params = new URLSearchParams(url.split("?")[1]);
+### Titre
 
-    // Récupère le titre (décode l'URL encoding)
-    const title = decodeURIComponent(params.get("titre") || "Sans titre");
+-   Le titre doit être précédé d'un `#` et un espace
+-   Il doit apparaître sur la première ligne non vide du document
+-   Un seul titre par document est autorisé
+-   Exemple : `# Les mois de l'année`
 
-    // Récupère la langue
-    const language = params.get("tl") || "fr";
+### Métadonnées
 
-    // Tableau pour stocker les phrases décodées
-    const sentences = [];
+Les métadonnées peuvent être ajoutées de deux façons :
 
-    // Parcourt les paramètres d[1] à d[20]
-    for (let i = 1; i <= 20; i++) {
-        const encodedPhrase = params.get(`d[${i}]`);
-        if (encodedPhrase) {
-            const decodedPhrase = decodeOldPhrase(encodedPhrase);
-            if (decodedPhrase) {
-                sentences.push(decodedPhrase);
-            }
-        }
-    }
+#### 1. Commentaires HTML (Recommandé)
 
-    // Conversion au format Markdown
-    let markdown = `# ${title}\n\n`;
-    sentences.forEach((sentence, index) => {
-        markdown += `${index + 1}. ${sentence}\n`;
-    });
+Pour une meilleure compatibilité avec tous les éditeurs Markdown, utilisez des commentaires HTML pour les métadonnées essentielles :
 
-    return markdown;
-}
+```markdown
+# Titre de la dictée
+
+<!-- lang:fr-FR -->
+
+1. Première phrase.
 ```
 
-## Mapping des codes de langue
+#### 2. YAML Frontmatter (Avancé)
 
-Le tableau suivant montre la correspondance entre les anciens codes de langue et les nouveaux :
+Pour des métadonnées plus complètes, vous pouvez utiliser le format YAML frontmatter :
 
-| Ancien code | Nouveau code |
-| ----------- | ------------ |
-| fr          | fr-FR        |
-| en          | en-US        |
-| es          | es-ES        |
-| de          | de-DE        |
-| it          | it-IT        |
+```markdown
+---
+language: fr-FR
+random: true
+author: Prénom Nom
+created: 2023-04-15
+---
 
-## Limites et considérations
+# Titre de la dictée
 
-### Limites de la migration automatique
+1. Première phrase.
+```
 
--   Les formatages spéciaux (gras, italique) ne sont pas présents dans l'ancien format et ne seront donc pas récupérés
--   Les métadonnées avancées (auteur, niveau, etc.) devront être ajoutées manuellement
--   Le paramètre d'ordre aléatoire (`a=1`) est converti, mais d'autres paramètres peuvent être perdus
+**Note importante** : L'application privilégie les métadonnées au format commentaire HTML pour la langue. Si les deux formats sont présents, le commentaire HTML sera prioritaire.
 
-### Avantages du nouveau format
+#### Métadonnées supportées
 
--   Meilleure lisibilité
--   URLs plus courtes
--   Possibilité d'ajouter des métadonnées et du formatage
--   Compatibilité avec des éditeurs Markdown externes
--   Stockage local ou cloud du fichier .md
+| Clé      | Description          | Valeurs possibles              | Par défaut    |
+| -------- | -------------------- | ------------------------------ | ------------- |
+| language | Code de langue       | Codes ISO (ex: fr-FR, en-US)   | fr            |
+| random   | Ordre aléatoire      | true/false                     | false         |
+| author   | Auteur de la dictée  | Texte                          | Non défini    |
+| created  | Date de création     | YYYY-MM-DD                     | Date actuelle |
+| tags     | Mots-clés associés   | Liste séparée par des virgules | Non défini    |
+| level    | Niveau de difficulté | easy, medium, hard             | medium        |
+| category | Catégorie thématique | Texte                          | Non défini    |
 
-## FAQ sur la migration
+### Langue de la dictée
 
-**Q : Puis-je migrer plusieurs dictées à la fois ?**  
-R : Non, l'outil de migration traite une dictée à la fois. Pour les utilisateurs avec de nombreuses dictées, contactez-nous pour une solution personnalisée.
+La langue est indiquée juste après le titre, avant les phrases :
 
-**Q : Les anciennes URLs continueront-elles à fonctionner ?**  
-R : Oui, pour assurer la compatibilité, les anciennes URLs resteront fonctionnelles, mais un message vous invitera à migrer vers le nouveau format.
+```markdown
+# Titre de la dictée
 
-**Q : Que se passe-t-il si la conversion échoue ?**  
-R : L'application affichera un message d'erreur précis. Vous pourrez alors essayer la méthode de migration manuelle ou nous contacter pour obtenir de l'aide.
+<!-- lang:fr -->
 
-**Q : Comment partager mes dictées migrées ?**  
-R : Après la migration, vous pouvez télécharger le fichier Markdown et le partager par e-mail, services cloud ou via l'URL directe générée par l'application.
+1. Première phrase de la dictée.
+2. Deuxième phrase de la dictée.
+```
 
-## Ressources supplémentaires
+Les codes de langue valides incluent :
 
--   [Guide d'utilisation](GUIDE_UTILISATION.md) - Pour en savoir plus sur l'utilisation de la nouvelle application
--   [Format Markdown](FORMAT_MARKDOWN.md) - Documentation détaillée du format Markdown utilisé
--   [Exemples de dictées](https://github.com/micetf/dictee-markdown/tree/main/examples) - Collection d'exemples au format Markdown
+-   Codes courts : `fr`, `en`, `es`, `de`, `it`
+-   Codes régionaux : `fr-FR`, `fr-CA`, `en-US`, `en-GB`, `es-ES`, etc.
+
+La langue spécifiée sera utilisée pour configurer la synthèse vocale lors de la lecture de la dictée.
+
+### Phrases
+
+-   Chaque phrase doit commencer par un numéro suivi d'un point et d'un espace (`1. `)
+-   Les phrases sont numérotées séquentiellement à partir de 1
+-   Chaque phrase doit apparaître sur une ligne distincte
+-   Une phrase peut contenir des formatages Markdown (gras, italique, etc.)
+-   Exemple : `1. Voici **une** phrase avec du *formatage*. `
+
+## Extensions et formatages
+
+### Formatage du texte
+
+Les dictées peuvent utiliser les éléments de formatage Markdown suivants :
+
+-   **Gras** : `**texte en gras**` ou `__texte en gras__`
+-   _Italique_ : `*texte en italique*` ou `_texte en italique_`
+-   **_Gras et italique_** : `**_texte en gras et italique_**`
+-   ~~Barré~~ : `~~texte barré~~`
+-   `Code` : `` `code` ``
+
+Ces formatages peuvent être utiles pour mettre en évidence certains éléments grammaticaux ou orthographiques.
+
+### Annotations pédagogiques
+
+Des annotations pédagogiques peuvent être ajoutées entre crochets après une phrase :
+
+```markdown
+1. Cette phrase contient un participe passé. [Attention à l'accord]
+2. Voici une phrase avec des homophones. [Distinguer "est" et "et"]
+```
+
+### Groupes de mots
+
+Pour les dictées de mots (par opposition aux phrases complètes), utilisez cette syntaxe :
+
+```markdown
+# Dictée de mots - Homophones
+
+<!-- lang:fr -->
+
+1. ver, verre, vers, vert
+2. mer, mère, maire
+3. pain, pin, peint
+```
+
+## Exemples complets
+
+### Exemple 1 : Dictée simple
+
+```markdown
+# Les saisons
+
+<!-- lang:fr -->
+
+1. L'hiver est la saison la plus froide de l'année.
+2. Au printemps, les fleurs commencent à éclore.
+3. L'été est caractérisé par des journées chaudes et ensoleillées.
+4. En automne, les feuilles des arbres changent de couleur et tombent.
+```
+
+### Exemple 2 : Dictée avec métadonnées et formatage
+
+```markdown
+---
+random: false
+author: Jean Dupont
+created: 2023-05-12
+tags: grammaire, accord, participe passé
+level: medium
+category: Règles grammaticales
+---
+
+# Les participes passés
+
+<!-- lang:fr-FR -->
+
+1. Les fleurs que j'ai **cueillies** sont magnifiques.
+2. Ma sœur est **partie** en voyage hier soir.
+3. Les efforts qu'ils ont **fournis** ont été récompensés.
+4. Elles se sont **regardées** en souriant.
+```
+
+### Exemple 3 : Dictée de mots en anglais
+
+```markdown
+# Days of the week
+
+<!-- lang:en-US -->
+
+1. Monday
+2. Tuesday
+3. Wednesday
+4. Thursday
+5. Friday
+6. Saturday
+7. Sunday
+```
+
+## Validation et compatibilité
+
+### Validation
+
+Un document de dictée est considéré valide s'il contient au minimum :
+
+-   Un titre précédé de `#`
+-   Au moins une phrase numérotée
+
+### Compatibilité
+
+Les fichiers Markdown sans métadonnées de langue seront toujours reconnus, et la langue sera définie par défaut à "fr" (français).
+
+### Compatibilité avec d'autres applications
+
+Le format choisi est compatible avec la plupart des éditeurs et visualiseurs Markdown :
+
+-   Visual Studio Code
+-   Typora
+-   Obsidian
+-   GitLab/GitHub Markdown
+-   Notion (avec quelques limitations pour les métadonnées)
+
+La métadonnée de langue au format commentaire HTML est invisible dans la plupart des prévisualisations Markdown, ce qui préserve la lisibilité du document.
+
+## Migration depuis l'ancien format
+
+Pour convertir une dictée depuis l'ancien format URL, utilisez la fonction de migration de l'application. Les étapes sont détaillées dans le [guide de migration](MIGRATION.md).
+
+## Bonnes pratiques
+
+-   Limitez les dictées à 20 phrases maximum pour une expérience utilisateur optimale
+-   Utilisez un titre concis et descriptif
+-   Spécifiez toujours la langue pour une meilleure expérience avec la synthèse vocale
+-   Pour les dictées pédagogiques, incluez le niveau scolaire dans les métadonnées
+-   Évitez d'utiliser des caractères spéciaux qui pourraient causer des problèmes d'encodage
+-   Vérifiez toujours la dictée avec la fonction de prévisualisation avant de la partager
